@@ -8,7 +8,6 @@ const criarLivro = async (req, res) => {
     try {
         await client.query("BEGIN");
 
-        // Inserir livro
         const livroResult = await client.query(
             `INSERT INTO Livro (nome, capa, uuid_usuario) 
              VALUES ($1, $2, $3) 
@@ -65,6 +64,7 @@ const listarLivros = async (req, res) => {
 
         res.json(result.rows);
     } catch (error) {
+        console.error("Erro ao obter livros:", error.message, error.stack);
         res.status(500).json({ erro: "Erro ao obter livros." });
     }
 };
@@ -128,7 +128,6 @@ const buscarLivros = async (req, res) => {
             return res.status(404).json({ erro: "Nenhum livro encontrado." });
         }
 
-        // Buscar todos os gêneros associados aos livros encontrados
         const livrosIds = livrosResult.rows.map((livro) => livro.uuid_livro);
         const generosQuery = `
             SELECT lg.uuid_livro, g.uuid_genero, g.nome
@@ -138,7 +137,6 @@ const buscarLivros = async (req, res) => {
         `;
         const generosResult = await pool.query(generosQuery, [livrosIds]);
 
-        // Mapear gêneros para cada livro
         const livrosComGeneros = livrosResult.rows.map((livro) => ({
             ...livro,
             generos: generosResult.rows

@@ -6,35 +6,47 @@ const criarVotacao = async (req, res) => {
     const uuid_usuario = req.usuario.uuid_usuario;
 
     try {
-        const { rows } = await pool.query(
-            `SELECT c.uuid_capitulo 
-             FROM Capitulo c 
-             INNER JOIN Livro l ON c.uuid_livro = l.uuid_livro 
+        const { rows: capituloRows } = await pool.query(
+            `SELECT c.uuid_capitulo FROM Capitulo c
+             INNER JOIN Livro l ON c.uuid_livro = l.uuid_livro
              WHERE c.uuid_capitulo = $1 AND l.uuid_usuario = $2`,
             [uuid_capitulo, uuid_usuario]
         );
 
-        if (rows.length === 0) {
-            return res
-                .status(403)
-                .json({ erro: "Você não pode criar votação neste capítulo." });
+        if (capituloRows.length === 0) {
+            return res.status(403).json({
+                erro: "Você não tem permissão para criar votações neste capítulo.",
+            });
         }
 
-        const { rows: votacao } = await pool.query(
-            `INSERT INTO Votacao (uuid_capitulo, titulo, status, criador, data_inicio, data_fim, opcoes) 
-             VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
-            [
-                uuid_capitulo,
-                titulo,
-                status,
-                uuid_usuario,
-                data_inicio,
-                data_fim,
-                JSON.stringify(opcoes),
-            ]
+        const { rows: votacaoRows } = await pool.query(
+            `INSERT INTO Votacao (uuid_capitulo, titulo, status, criador, data_inicio, data_fim)
+             VALUES ($1, $2, $3, $4, $5, $6) RETURNING uuid_votacao`,
+            [uuid_capitulo, titulo, status, uuid_usuario, data_inicio, data_fim]
         );
 
-        res.status(201).json(votacao[0]);
+        const uuid_votacao = votacaoRows[0].uuid_votacao;
+
+        let opcoesComIndex = opcoes.map((opcao, index) => ({
+            descricao: opcao.descricao,
+            index: index,
+            qtd_votos: 0,
+        }));
+
+        await pool.query(
+            `UPDATE Votacao SET opcoes = $1 WHERE uuid_votacao = $2`,
+            [JSON.stringify(opcoesComIndex), uuid_votacao]
+        );
+
+        res.status(201).json({
+            mensagem: "Votação criada com sucesso.",
+            uuid_votacao,
+            titulo,
+            status,
+            data_inicio,
+            data_fim,
+            opcoes: opcoesComIndex,
+        });
     } catch (error) {
         console.error("Erro ao criar votação:", error.message);
         res.status(500).json({ erro: "Erro ao criar votação." });
@@ -132,7 +144,7 @@ const excluirVotacao = async (req, res) => {
 };
 
 const votar = async (req, res) => {
-    const { uuid_votacao, opcao_escolhida } = req.body;
+    const { uuid_votacao, opcao_index } = req.body;
     const uuid_usuario = req.usuario.uuid_usuario;
 
     try {
@@ -153,19 +165,16 @@ const votar = async (req, res) => {
                 .json({ erro: "A votação já foi encerrada." });
         }
 
-        let opcoes = votacao.opcoes.map((opcao) => ({
+        let opcoes = votacao.opcoes.map((opcao, index) => ({
             ...opcao,
+            index: index,
             qtd_votos: opcao.qtd_votos || 0,
         }));
 
-        const opcaoIndex = opcoes.findIndex(
-            (o) => o.descricao === opcao_escolhida
-        );
-
-        if (opcaoIndex === -1) {
+        if (opcao_index < 0 || opcao_index >= opcoes.length) {
             return res
                 .status(400)
-                .json({ erro: "Opção inválida para esta votação." });
+                .json({ erro: "Índice de opção inválido para esta votação." });
         }
 
         const { rows: votoExistente } = await pool.query(
@@ -176,33 +185,30 @@ const votar = async (req, res) => {
         if (votoExistente.length > 0) {
             const opcao_anterior = votoExistente[0].opcao_escolhida;
 
-            if (opcao_anterior === opcao_escolhida) {
+            if (opcao_anterior === opcao_index) {
                 return res
                     .status(400)
                     .json({ erro: "Você já votou nesta opção." });
             }
 
-            const indexAnterior = opcoes.findIndex(
-                (o) => o.descricao === opcao_anterior
-            );
-            if (indexAnterior !== -1) {
-                opcoes[indexAnterior].qtd_votos -= 1;
+            if (opcoes[opcao_anterior]) {
+                opcoes[opcao_anterior].qtd_votos -= 1;
             }
 
             await pool.query(
                 `UPDATE Voto_Usuario SET opcao_escolhida = $1, data_criacao = NOW()
                  WHERE uuid_usuario = $2 AND uuid_votacao = $3`,
-                [opcao_escolhida, uuid_usuario, uuid_votacao]
+                [opcao_index, uuid_usuario, uuid_votacao]
             );
         } else {
             await pool.query(
                 `INSERT INTO Voto_Usuario (uuid_usuario, uuid_votacao, opcao_escolhida, data_criacao) 
                  VALUES ($1, $2, $3, NOW())`,
-                [uuid_usuario, uuid_votacao, opcao_escolhida]
+                [uuid_usuario, uuid_votacao, opcao_index]
             );
         }
 
-        opcoes[opcaoIndex].qtd_votos += 1;
+        opcoes[opcao_index].qtd_votos += 1;
 
         await pool.query(
             `UPDATE Votacao SET opcoes = $1, data_atualizado = NOW() WHERE uuid_votacao = $2`,
