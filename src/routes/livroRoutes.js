@@ -1,26 +1,34 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
+const autenticar = require("../middlewares/autenticar");
+const autorizarDono = require("../middlewares/autorizarDono");
 const {
-    createLivro,
-    getLivros,
-    getLivroByUuid,
-    getCapitulosByLivro,
-    updateLivro,
-    deleteLivro
-} = require('../controllers/livroController');
+    criarLivro,
+    atualizarLivro,
+    excluirLivro,
+    listarLivros,
+    obterLivroPorUUID,
+    buscarLivros,
+} = require("../controllers/livroController");
 
-//POST
-router.post('/', createLivro);
+router.post("/", autenticar, criarLivro);
 
-//GET
-router.get('/', getLivros); 
-router.get('/:livroUuid', getLivroByUuid); 
-router.get('/:livroUuid/capitulos', getCapitulosByLivro);
+router.get("/", listarLivros);
+router.get("/busca", buscarLivros);
+router.get("/:uuid_livro", obterLivroPorUUID);
 
-//PUT
-router.put('/:livroUuid', updateLivro); 
+router.put(
+    "/:uuid_livro",
+    autenticar,
+    autorizarDono("Livro", "uuid_usuario", "uuid_livro"),
+    atualizarLivro
+);
 
-//DELETE
-router.delete('/:livroUuid', deleteLivro);
+router.delete(
+    "/:uuid_livro",
+    autenticar,
+    autorizarDono("Livro", "uuid_usuario", "uuid_livro"),
+    excluirLivro
+);
 
 module.exports = router;

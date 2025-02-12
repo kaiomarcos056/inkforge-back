@@ -1,22 +1,30 @@
-const express = require('express');
-const router = express.Router();
+const express = require("express");
 const {
-  createCapitulo,
-  getCapituloByUuid,
-  updateCapitulo,
-  deleteCapitulo
-} = require('../controllers/capituloController');
+    criarCapitulo,
+    editarCapitulo,
+    excluirCapitulo,
+    listarCapitulos,
+} = require("../controllers/capituloController");
+const autenticar = require("../middlewares/autenticar");
+const autorizarDono = require("../middlewares/autorizarDono");
 
-// POST
-router.post('/', createCapitulo);
+const router = express.Router();
 
-// GET
-router.get('/:capituloUuid', getCapituloByUuid);
+router.post("/", autenticar, criarCapitulo);
 
-// PUT
-router.put('/:capituloUuid', updateCapitulo);
+router.get("/:uuid_livro", listarCapitulos);
 
-// DELETE
-router.delete('/:capituloUuid', deleteCapitulo);
+router.put(
+    "/:uuid_capitulo",
+    autenticar,
+    autorizarDono("Capitulo", "uuid_livro", "uuid_capitulo"),
+    editarCapitulo
+);
+router.delete(
+    "/:uuid_capitulo",
+    autenticar,
+    autorizarDono("Capitulo", "uuid_livro", "uuid_capitulo"),
+    excluirCapitulo
+);
 
 module.exports = router;

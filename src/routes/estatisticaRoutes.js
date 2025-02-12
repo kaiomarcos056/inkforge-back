@@ -1,8 +1,7 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const estatisticaController = require('../controllers/estatisticaController');
+const estatisticaController = require("../controllers/estatisticaController");
 
-//GET
-router.get('/:uuid_usuario', estatisticaController.getEstatisticasByUsuario);
+router.get("/:uuid_usuario", estatisticaController.getEstatisticasByUsuario);
 
 module.exports = router;

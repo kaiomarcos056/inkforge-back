@@ -1,11 +1,9 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const comentarioController = require('../controllers/comentarioController');
+const comentarioController = require("../controllers/comentarioController");
 
-//POST
-router.post('/', comentarioController.addComentario);
+router.post("/", comentarioController.addComentario);
 
-//GET
-router.get('/:uuid_capitulo', comentarioController.getComentariosByCapitulo);
+router.get("/:uuid_capitulo", comentarioController.getComentariosByCapitulo);
 
 module.exports = router;

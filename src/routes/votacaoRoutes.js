@@ -1,11 +1,33 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const votacaoController = require('../controllers/votacaoController');
+const {
+    criarVotacao,
+    listarVotacoesPorCapitulo,
+    editarVotacao,
+    excluirVotacao,
+    votar,
+} = require("../controllers/votacaoController");
 
-//POST
-router.post('/', votacaoController.createVotacao);
+const autenticar = require("../middlewares/autenticar");
+const autorizarDono = require("../middlewares/autorizarDono");
 
-//GET
-router.get('/:uuid_capitulo', votacaoController.getVotacoesByCapitulo);
+router.post("/", autenticar, criarVotacao);
+
+router.get("/capitulo/:uuid_capitulo", listarVotacoesPorCapitulo);
+
+router.put(
+    "/:uuid_votacao",
+    autenticar,
+    autorizarDono("Votacao", "criador", "uuid_votacao"),
+    editarVotacao
+);
+
+router.delete(
+    "/:uuid_votacao",
+    autenticar,
+    autorizarDono("Votacao", "criador", "uuid_votacao"),
+    excluirVotacao
+);
+router.post("/votar", autenticar, votar);
 
 module.exports = router;
