@@ -161,14 +161,16 @@ const obterLivroPorUUID = async (req, res) => {
                 l.nome, 
                 l.capa, 
                 l.uuid_usuario,
+                u.nome AS autor,
                 COALESCE(JSON_AGG(
                     JSON_BUILD_OBJECT('uuid_genero', g.uuid_genero, 'nome', g.nome)
                 ) FILTER (WHERE g.uuid_genero IS NOT NULL), '[]') AS generos
             FROM Livro l
+            LEFT JOIN Usuario u ON l.uuid_usuario = u.uuid_usuario
             LEFT JOIN Livro_Genero lg ON l.uuid_livro = lg.uuid_livro
             LEFT JOIN Genero g ON lg.uuid_genero = g.uuid_genero
             WHERE l.uuid_livro = $1
-            GROUP BY l.uuid_livro`,
+            GROUP BY l.uuid_livro, u.nome`,
             [uuid_livro]
         );
 
