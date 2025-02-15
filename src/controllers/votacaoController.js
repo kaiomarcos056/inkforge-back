@@ -1,9 +1,8 @@
 const pool = require("../config/db");
 
 const criarVotacao = async (req, res) => {
-    const { uuid_capitulo, titulo, status, data_inicio, data_fim, opcoes } =
-        req.body;
-    const uuid_usuario = req.usuario.uuid_usuario;
+    const { uuid_capitulo, titulo, data_inicio, data_fim, opcoes } = req.body;
+    const uuid_usuario = req.user.uuid_usuario;
 
     try {
         const { rows: capituloRows } = await pool.query(
@@ -19,10 +18,21 @@ const criarVotacao = async (req, res) => {
             });
         }
 
+        const agora = new Date();
+        const inicio = new Date(data_inicio);
+        const statusInicial = inicio <= agora ? "aberta" : "preparando";
+
         const { rows: votacaoRows } = await pool.query(
             `INSERT INTO Votacao (uuid_capitulo, titulo, status, criador, data_inicio, data_fim)
              VALUES ($1, $2, $3, $4, $5, $6) RETURNING uuid_votacao`,
-            [uuid_capitulo, titulo, status, uuid_usuario, data_inicio, data_fim]
+            [
+                uuid_capitulo,
+                titulo,
+                statusInicial,
+                uuid_usuario,
+                data_inicio,
+                data_fim,
+            ]
         );
 
         const uuid_votacao = votacaoRows[0].uuid_votacao;
@@ -42,7 +52,7 @@ const criarVotacao = async (req, res) => {
             mensagem: "Votação criada com sucesso.",
             uuid_votacao,
             titulo,
-            status,
+            status: statusInicial,
             data_inicio,
             data_fim,
             opcoes: opcoesComIndex,
@@ -53,6 +63,28 @@ const criarVotacao = async (req, res) => {
     }
 };
 
+/**
+ * @swagger
+ * /votacao/{uuid_capitulo}:
+ *   get:
+ *     summary: Lista todas as votações de um capítulo
+ *     tags: [Votação]
+ *     parameters:
+ *       - in: path
+ *         name: uuid_capitulo
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: UUID do capítulo.
+ *     responses:
+ *       200:
+ *         description: Lista de votações do capítulo.
+ *       404:
+ *         description: Nenhuma votação encontrada.
+ *       500:
+ *         description: Erro ao listar votações.
+ */
 const listarVotacoesPorCapitulo = async (req, res) => {
     const { uuid_capitulo } = req.params;
 
@@ -221,6 +253,29 @@ const votar = async (req, res) => {
         res.status(500).json({ erro: "Erro ao registrar o voto." });
     }
 };
+
+const atualizarStatusVotacoes = async () => {
+    try {
+        await pool.query(
+            `UPDATE Votacao SET status = 'aberta', data_atualizado = NOW()
+             WHERE status = 'preparando' AND data_inicio <= NOW()`
+        );
+
+        await pool.query(
+            `UPDATE Votacao SET status = 'fechada', data_atualizado = NOW()
+             WHERE status = 'aberta' AND data_fim < NOW()`
+        );
+
+        console.log("Votações atualizadas automaticamente.");
+    } catch (error) {
+        console.error(
+            "Erro ao atualizar votações automaticamente:",
+            error.message
+        );
+    }
+};
+
+setInterval(atualizarStatusVotacoes, 10 * 60 * 1000);
 
 module.exports = {
     criarVotacao,

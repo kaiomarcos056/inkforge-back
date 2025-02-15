@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const PORT = process.env.PORT || 3000;
+const { swaggerUi, swaggerDocs } = require("./config/swagger");
 
 const authRoutes = require("./routes/autenticarRoutes");
 const livroRoutes = require("./routes/livroRoutes");
@@ -20,6 +21,8 @@ app.use(
         origin: "*",
     })
 );
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 app.use("/auth", authRoutes);
 app.use("/livros", livroRoutes);
