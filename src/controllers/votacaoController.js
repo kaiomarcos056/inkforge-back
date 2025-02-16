@@ -2,7 +2,7 @@ const pool = require("../config/db");
 
 const criarVotacao = async (req, res) => {
     const { uuid_capitulo, titulo, data_inicio, data_fim, opcoes } = req.body;
-    const uuid_usuario = req.user.uuid_usuario;
+    const uuid_usuario = req.usuario.uuid_usuario;
 
     try {
         const { rows: capituloRows } = await pool.query(
@@ -63,28 +63,6 @@ const criarVotacao = async (req, res) => {
     }
 };
 
-/**
- * @swagger
- * /votacao/{uuid_capitulo}:
- *   get:
- *     summary: Lista todas as votações de um capítulo
- *     tags: [Votação]
- *     parameters:
- *       - in: path
- *         name: uuid_capitulo
- *         required: true
- *         schema:
- *           type: string
- *           format: uuid
- *         description: UUID do capítulo.
- *     responses:
- *       200:
- *         description: Lista de votações do capítulo.
- *       404:
- *         description: Nenhuma votação encontrada.
- *       500:
- *         description: Erro ao listar votações.
- */
 const listarVotacoesPorCapitulo = async (req, res) => {
     const { uuid_capitulo } = req.params;
 
