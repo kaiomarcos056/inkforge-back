@@ -117,4 +117,32 @@ const login = async (req, res) => {
     }
 };
 
-module.exports = { registrar, login };
+const redefinirSenha = async (req, res) => {
+    const { email, nova_senha } = req.body;
+
+    try {
+        const { rows } = await pool.query(
+            "SELECT uuid_usuario FROM Usuario WHERE email = $1",
+            [email]
+        );
+
+        if (rows.length === 0) {
+            return res.status(404).json({ erro: "Usuário não encontrado." });
+        }
+
+        const uuid_usuario = rows[0].uuid_usuario;
+        const senhaCriptografada = await bcrypt.hash(nova_senha, 10);
+
+        await pool.query(
+            "UPDATE Usuario SET senha = $1 WHERE uuid_usuario = $2",
+            [senhaCriptografada, uuid_usuario]
+        );
+
+        res.status(200).json({ mensagem: "Senha redefinida com sucesso." });
+    } catch (error) {
+        console.error("Erro ao redefinir senha:", error.message);
+        res.status(500).json({ erro: "Erro ao redefinir senha." });
+    }
+};
+
+module.exports = { registrar, login, redefinirSenha };
