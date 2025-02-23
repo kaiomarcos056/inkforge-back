@@ -253,7 +253,7 @@ const atualizarStatusVotacoes = async () => {
     }
 };
 
-setInterval(atualizarStatusVotacoes, 10 * 60 * 1000);
+//setInterval(atualizarStatusVotacoes, 10 * 60 * 1000);
 
 module.exports = {
     criarVotacao,

@@ -1,10 +1,11 @@
 const pool = require("../config/db");
 
 const createUsuario = async (req, res) => {
-    const { nome, email, senha, tipo, plano, nivel } = req.body;
+    const { nome, email, senha, foto, descricao, tipo, plano, nivel } = req.body;
     let planoSelecionado = plano || "Free";
 
     try {
+        
         const planoResult = await pool.query(
             "SELECT uuid_plano FROM Plano WHERE nome = $1",
             [planoSelecionado]
@@ -30,9 +31,11 @@ const createUsuario = async (req, res) => {
             "INSERT INTO Usuario (nome, email, senha, tipo, plano, nivel, uuid_plano) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *",
             [nome, email, senha, tipo, planoSelecionado, nivel, uuid_plano]
         );
+        
 
         res.status(201).json(result.rows[0]);
-    } catch (err) {
+    } 
+    catch (err) {
         console.error(err);
         res.status(500).json({ error: "Erro ao criar usuário" });
     }

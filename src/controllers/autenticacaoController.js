@@ -4,8 +4,8 @@ const jwt = require("jsonwebtoken");
 const { segredo, tempoExpiracao } = require("../config/autenticacaoConfig");
 
 const registrar = async (req, res) => {
-    const { nome, email, senha, tipo, plano, nivel } = req.body;
-
+    const { nome, email, senha, tipo, plano, nivel, descricao, foto, interesses} = req.body;
+    const client = await pool.connect();
     try {
         const { rows: usuarioExistente } = await pool.query(
             "SELECT * FROM Usuario WHERE email = $1",
@@ -30,12 +30,16 @@ const registrar = async (req, res) => {
 
         const uuid_plano = planoRows[0].uuid_plano;
 
-        await pool.query(
-            `INSERT INTO Usuario (nome, email, senha, tipo, plano, nivel, uuid_plano) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+        await client.query("BEGIN");
+
+        const user = await client.query(
+            `INSERT INTO Usuario (nome, email, foto, descricao, senha, tipo, plano, nivel, uuid_plano) 
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *`,
             [
                 nome,
                 email,
+                foto,
+                descricao,
                 senhaCriptografada,
                 tipo,
                 planoSelecionado,
@@ -44,7 +48,25 @@ const registrar = async (req, res) => {
             ]
         );
 
-        res.status(201).json({ mensagem: "Usuário registrado com sucesso." });
+        const result = user.rows[0];
+
+        if (Array.isArray(interesses) && interesses.length > 0) {
+            const insertInteresseQuery = `
+                INSERT INTO Usuario_Interesse (uuid_usuario, uuid_interesse) 
+                VALUES ($1, $2)
+            `;
+
+            for (const uuid_interesse of interesses) {
+                await client.query(insertInteresseQuery, [
+                    result.uuid_usuario,
+                    uuid_interesse,
+                ]);
+            }
+        }
+
+        await client.query("COMMIT");
+
+        res.status(201).json(result);
     } catch (error) {
         console.error("Erro ao registrar usuário:", error);
         res.status(500).json({ erro: "Erro ao registrar usuário." });
@@ -68,7 +90,7 @@ const login = async (req, res) => {
     const { email, senha } = req.body;
 
     try {
-        const { rows } = await pool.query(
+        let { rows } = await pool.query(
             "SELECT * FROM Usuario WHERE email = $1",
             [email]
         );
@@ -88,6 +110,11 @@ const login = async (req, res) => {
                 .status(401)
                 .json({ erro: "Usuário ou senha incorretos." });
         }
+        
+        const result = await pool.query(
+            "SELECT u.uuid_interesse, i.nome FROM usuario_interesse u INNER JOIN interesse i ON i.uuid_interesse = u.uuid_interesse WHERE u.uuid_usuario = $1",
+            [usuario.uuid_usuario]
+        );
 
         const tempoExpiracaoMs = converterExpiracaoParaMs(tempoExpiracao);
 
@@ -110,10 +137,13 @@ const login = async (req, res) => {
                 nome: usuario.nome,
                 email: usuario.email,
                 tipo: usuario.tipo,
+                foto: usuario.foto,
+                descricao: usuario.descricao,
+                interesses: result.rows
             },
         });
     } catch (error) {
-        res.status(500).json({ erro: "Erro ao fazer login." });
+        res.status(500).json({ erro: "Erro ao fazer login."+error.message });
     }
 };
 
@@ -139,7 +169,8 @@ const redefinirSenha = async (req, res) => {
         );
 
         res.status(200).json({ mensagem: "Senha redefinida com sucesso." });
-    } catch (error) {
+    } 
+    catch (error) {
         console.error("Erro ao redefinir senha:", error.message);
         res.status(500).json({ erro: "Erro ao redefinir senha." });
     }

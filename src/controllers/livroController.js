@@ -1,7 +1,7 @@
 const pool = require("../config/db");
 
 const criarLivro = async (req, res) => {
-    const { nome, capa, generos } = req.body;
+    const { nome, capa, descricao, generos } = req.body;
     const uuid_usuario = req.usuario.uuid_usuario;
 
     const client = await pool.connect();
@@ -9,10 +9,10 @@ const criarLivro = async (req, res) => {
         await client.query("BEGIN");
 
         const livroResult = await client.query(
-            `INSERT INTO Livro (nome, capa, uuid_usuario) 
-             VALUES ($1, $2, $3) 
+            `INSERT INTO Livro (nome, capa, descricao, uuid_usuario) 
+             VALUES ($1, $2, $3, $4) 
              RETURNING *`,
-            [nome, capa, uuid_usuario]
+            [nome, capa, descricao, uuid_usuario]
         );
 
         const livro = livroResult.rows[0];
@@ -33,11 +33,12 @@ const criarLivro = async (req, res) => {
 
         await client.query("COMMIT");
         res.status(201).json(livro);
-    } catch (err) {
+    } 
+    catch (err) {
         await client.query("ROLLBACK");
-        console.error(err);
         res.status(500).json({ erro: "Erro ao criar livro." });
-    } finally {
+    } 
+    finally {
         client.release();
     }
 };
@@ -49,8 +50,10 @@ const listarLivros = async (req, res) => {
                 l.uuid_livro, 
                 l.nome, 
                 l.capa, 
+                l.descricao,
                 l.data_criacao, 
                 u.nome AS autor, 
+                u.foto,
                 COALESCE(JSON_AGG(
                     JSON_BUILD_OBJECT('uuid_genero', g.uuid_genero, 'nome', g.nome)
                 ) FILTER (WHERE g.uuid_genero IS NOT NULL), '[]') AS generos
@@ -58,12 +61,13 @@ const listarLivros = async (req, res) => {
             LEFT JOIN Usuario u ON l.uuid_usuario = u.uuid_usuario
             LEFT JOIN Livro_Genero lg ON l.uuid_livro = lg.uuid_livro
             LEFT JOIN Genero g ON lg.uuid_genero = g.uuid_genero
-            GROUP BY l.uuid_livro, u.nome, l.data_criacao
+            GROUP BY l.uuid_livro, u.nome, u.foto, l.data_criacao
             ORDER BY l.data_criacao DESC
         `);
 
         res.json(result.rows);
-    } catch (error) {
+    } 
+    catch (error) {
         console.error("Erro ao obter livros:", error.message, error.stack);
         res.status(500).json({ erro: "Erro ao obter livros." });
     }
@@ -81,6 +85,7 @@ const buscarLivros = async (req, res) => {
                 l.uuid_livro, 
                 l.nome, 
                 l.capa, 
+                l.descricao,
                 l.data_criacao, 
                 u.nome AS autor
             FROM Livro l
@@ -162,6 +167,7 @@ const obterLivroPorUUID = async (req, res) => {
                 l.capa, 
                 l.uuid_usuario,
                 u.nome AS autor,
+                u.foto AS foto,
                 COALESCE(JSON_AGG(
                     JSON_BUILD_OBJECT('uuid_genero', g.uuid_genero, 'nome', g.nome)
                 ) FILTER (WHERE g.uuid_genero IS NOT NULL), '[]') AS generos
@@ -170,7 +176,7 @@ const obterLivroPorUUID = async (req, res) => {
             LEFT JOIN Livro_Genero lg ON l.uuid_livro = lg.uuid_livro
             LEFT JOIN Genero g ON lg.uuid_genero = g.uuid_genero
             WHERE l.uuid_livro = $1
-            GROUP BY l.uuid_livro, u.nome`,
+            GROUP BY l.uuid_livro, u.nome, u.foto`,
             [uuid_livro]
         );
 

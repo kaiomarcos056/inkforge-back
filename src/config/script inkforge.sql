@@ -16,6 +16,8 @@ CREATE TABLE Usuario (
     tipo VARCHAR NOT NULL,
     plano VARCHAR NOT NULL,
     nivel VARCHAR NOT NULL,
+    foto VARCHAR,
+    descricao VARCHAR,
     uuid_plano UUID REFERENCES Plano(uuid_plano),
     data_criacao TIMESTAMP DEFAULT NOW(),
     data_atualizado TIMESTAMP DEFAULT NOW()
@@ -39,11 +41,29 @@ CREATE TABLE Genero (
     data_atualizado TIMESTAMP DEFAULT NOW()
 );
 
+-- Cria a tabela de Interesse
+CREATE TABLE Interesse (
+    uuid_interesse UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    nome VARCHAR NOT NULL UNIQUE,
+    data_criacao TIMESTAMP DEFAULT NOW(),
+    data_atualizado TIMESTAMP DEFAULT NOW()
+);
+
+-- Criar a tabela Usuario_Interesse
+CREATE TABLE Usuario_Interesse (
+    uuid_usuario UUID REFERENCES Usuario(uuid_usuario) ON DELETE CASCADE,
+    uuid_interesse UUID REFERENCES Interesse(uuid_interesse) ON DELETE CASCADE,
+    data_criacao TIMESTAMP DEFAULT NOW(),
+    data_atualizado TIMESTAMP DEFAULT NOW(),
+    PRIMARY KEY (uuid_usuario, uuid_interesse)
+);
+
 -- Criar a tabela Livro
 CREATE TABLE Livro (
     uuid_livro UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     nome VARCHAR NOT NULL,
     capa VARCHAR,
+	descricao VARCHAR,
     uuid_usuario UUID REFERENCES Usuario(uuid_usuario),
     data_criacao TIMESTAMP DEFAULT NOW(),
     data_atualizado TIMESTAMP DEFAULT NOW()
@@ -71,10 +91,14 @@ CREATE TABLE Capitulo (
     uuid_capitulo UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     uuid_livro UUID REFERENCES Livro(uuid_livro) ON DELETE CASCADE,
     titulo VARCHAR NOT NULL,
+	descricao VARCHAR,
     conteudo TEXT NOT NULL,
     data_criacao TIMESTAMP DEFAULT NOW(),
     data_atualizado TIMESTAMP DEFAULT NOW()
 );
+
+ALTER TABLE capitulo
+ADD COLUMN finalizado BOOLEAN DEFAULT FALSE;
 
 -- Criar a tabela Comentario
 CREATE TABLE Comentario (
@@ -109,3 +133,27 @@ CREATE TABLE Voto_Usuario (
     data_criacao TIMESTAMP DEFAULT NOW(),
     UNIQUE (uuid_usuario, uuid_votacao)
 );
+
+-- Criar a tabela de historico
+CREATE TABLE Historico (
+    uuid_historico UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    uuid_capitulo UUID REFERENCES capitulo(uuid_capitulo) ON DELETE CASCADE,
+    uuid_usuario UUID REFERENCES usuario(uuid_usuario) ON DELETE CASCADE,
+    data_criacao TIMESTAMP DEFAULT NOW(),
+    data_atualizado TIMESTAMP DEFAULT NOW()
+);
+
+-- Inserindo generos
+INSERT INTO genero(nome) VALUES 
+('Horror'),
+('Suspense'),
+('Fantasia'),
+('Romance'),
+('Aventura'),
+('Mistério')
+('Terror'), 
+('Comédia'), 
+('Infantil'), 
+('Drama')
+
+

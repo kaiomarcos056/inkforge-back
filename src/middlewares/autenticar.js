@@ -16,7 +16,8 @@ const autenticar = (req, res, next) => {
         const usuario = jwt.verify(token, segredo);
         req.usuario = usuario;
         next();
-    } catch (erro) {
+    } 
+    catch (erro) {
         return res.status(401).json({ erro: "Não autorizado." });
     }
 };

@@ -2,10 +2,12 @@ const express = require("express");
 const {
     criarCapitulo,
     editarCapitulo,
+    editarConteudo,
     excluirCapitulo,
     listarCapitulos,
     registrarLeituraCapitulo,
     listarUltimosCapitulosLidos,
+    finalizarCapitulo
 } = require("../controllers/capituloController");
 const autenticar = require("../middlewares/autenticar");
 const autorizarDono = require("../middlewares/autorizarDono");
@@ -146,8 +148,22 @@ router.get("/:uuid_livro", listarCapitulos);
 router.put(
     "/:uuid_capitulo",
     autenticar,
-    autorizarDono("Capitulo", "uuid_livro", "uuid_capitulo"),
+    autorizarDono("capitulo", "uuid_livro", "uuid_capitulo"),
     editarCapitulo
+);
+
+router.put(
+    "/conteudo/:uuid_capitulo",
+    autenticar,
+    autorizarDono("capitulo", "l.uuid_usuario", "uuid_capitulo"),
+    editarConteudo
+);
+
+router.put(
+    "/finalizar/:uuid_capitulo",
+    autenticar,
+    autorizarDono("capitulo", "l.uuid_usuario", "uuid_capitulo"),
+    finalizarCapitulo
 );
 
 /**

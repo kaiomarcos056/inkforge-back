@@ -6,8 +6,17 @@ const autorizarDono = (tabela, colunaDono, colunaUUID) => {
         const uuid_recurso = req.params[colunaUUID];
 
         try {
+
             const { rows } = await pool.query(
-                `SELECT ${colunaDono} FROM ${tabela} WHERE ${colunaUUID} = $1`,
+                `
+                SELECT 
+                    l.uuid_usuario
+                FROM capitulo c
+                INNER JOIN livro l 
+                ON l.uuid_livro = c.uuid_livro
+                WHERE 1 = 1 
+                AND uuid_capitulo = $1
+                `,
                 [uuid_recurso]
             );
 
@@ -17,21 +26,16 @@ const autorizarDono = (tabela, colunaDono, colunaUUID) => {
                     .json({ erro: "Recurso não encontrado." });
             }
 
-            if (rows[0][colunaDono] !== uuid_usuario) {
+            if (rows[0].uuid_usuario !== uuid_usuario) {
                 return res.status(403).json({
                     erro: "Você não tem permissão para modificar este recurso.",
                 });
             }
 
             next();
-        } catch (erro) {
-            console.error(
-                "Erro ao verificar propriedade do recurso:",
-                erro.message
-            );
-            res.status(500).json({
-                erro: "Erro interno ao verificar permissão.",
-            });
+        } 
+        catch (erro) {
+            res.status(500).json({ erro: "Erro interno ao verificar permissão.", });
         }
     };
 };

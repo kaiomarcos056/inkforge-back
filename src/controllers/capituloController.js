@@ -1,7 +1,7 @@
 const pool = require("../config/db");
 
 const criarCapitulo = async (req, res) => {
-    const { uuid_livro, titulo, conteudo } = req.body;
+    const { uuid_livro, titulo, descricao, conteudo } = req.body;
     const uuid_usuario = req.usuario.uuid_usuario;
 
     try {
@@ -19,19 +19,19 @@ const criarCapitulo = async (req, res) => {
         }
 
         const { rows: capituloRows } = await pool.query(
-            `INSERT INTO Capitulo (uuid_livro, titulo, conteudo) 
-            VALUES ($1, $2, $3) 
+            `INSERT INTO Capitulo (uuid_livro, titulo, descricao, conteudo) 
+            VALUES ($1, $2, $3, $4) 
             RETURNING uuid_capitulo`,
-            [uuid_livro, titulo, conteudo]
+            [uuid_livro, titulo, descricao, conteudo]
         );
 
         res.status(201).json({
             mensagem: "Capítulo criado com sucesso.",
             uuid_capitulo: capituloRows[0].uuid_capitulo,
         });
-    } catch (error) {
-        console.error("Erro ao criar capítulo:", error.message);
-        res.status(500).json({ erro: "Erro ao criar capítulo." });
+    } 
+    catch (error) {
+        res.status(500).json({ erro: "Erro ao criar capítulo. "+error.mensagem });
     }
 };
 
@@ -68,7 +68,7 @@ const listarCapitulos = async (req, res) => {
 
     try {
         const { rows } = await pool.query(
-            `SELECT uuid_capitulo, titulo, conteudo, data_criacao, data_atualizado 
+            `SELECT uuid_capitulo, titulo, descricao, finalizado, conteudo, data_criacao, data_atualizado 
        FROM Capitulo 
        WHERE uuid_livro = $1 
        ORDER BY data_criacao ASC`,
@@ -153,6 +153,95 @@ const editarCapitulo = async (req, res) => {
     }
 };
 
+const editarConteudo = async (req, res) => {
+    const { uuid_capitulo } = req.params;
+    const { conteudo } = req.body;
+    const uuid_usuario = req.usuario.uuid_usuario;
+
+    try {
+        const { rows } = await pool.query(
+            `
+            SELECT 
+                c.uuid_capitulo 
+            FROM capitulo c
+            INNER JOIN livro l ON c.uuid_livro = l.uuid_livro
+            WHERE 1 = 1 
+            AND c.uuid_capitulo = $1 
+            AND l.uuid_usuario = $2
+            `,
+            [uuid_capitulo, uuid_usuario]
+        );
+
+        if (rows.length === 0) {
+            return res.status(403).json({
+                erro: "Você não tem permissão para editar este capítulo.",
+            });
+        }
+
+        await pool.query(
+            `
+            UPDATE 
+                capitulo 
+            SET 
+                conteudo = $1, 
+                data_atualizado = NOW() 
+            WHERE 
+                uuid_capitulo = $2
+            `,
+            [conteudo, uuid_capitulo]
+        );
+
+        res.json({ mensagem: "Capítulo atualizado com sucesso." });
+    } 
+    catch (error) {
+        res.status(500).json({ erro: "Erro ao editar capítulo." });
+    }
+};
+
+const finalizarCapitulo = async (req, res) => {
+    const { uuid_capitulo } = req.params;
+    const uuid_usuario = req.usuario.uuid_usuario;
+
+    try {
+        const { rows } = await pool.query(
+            `
+            SELECT 
+                c.uuid_capitulo 
+            FROM capitulo c
+            INNER JOIN livro l ON c.uuid_livro = l.uuid_livro
+            WHERE 1 = 1 
+            AND c.uuid_capitulo = $1 
+            AND l.uuid_usuario = $2
+            `,
+            [uuid_capitulo, uuid_usuario]
+        );
+
+        if (rows.length === 0) {
+            return res.status(403).json({
+                erro: "Você não tem permissão para editar este capítulo.",
+            });
+        }
+
+        await pool.query(
+            `
+            UPDATE 
+                capitulo 
+            SET 
+                finalizado = true, 
+                data_atualizado = NOW() 
+            WHERE 
+                uuid_capitulo = $1
+            `,
+            [uuid_capitulo]
+        );
+
+        res.json({ mensagem: "Capítulo atualizado com sucesso." });
+    } 
+    catch (error) {
+        res.status(500).json({ erro: "Erro ao editar capítulo." });
+    }
+};
+
 const excluirCapitulo = async (req, res) => {
     const { uuid_capitulo } = req.params;
     const uuid_usuario = req.usuario.uuid_usuario;
@@ -186,8 +275,10 @@ const excluirCapitulo = async (req, res) => {
 module.exports = {
     criarCapitulo,
     editarCapitulo,
+    editarConteudo,
     excluirCapitulo,
     listarCapitulos,
     registrarLeituraCapitulo,
     listarUltimosCapitulosLidos,
+    finalizarCapitulo
 };
