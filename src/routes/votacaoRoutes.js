@@ -6,7 +6,8 @@ const {
     editarVotacao,
     excluirVotacao,
     votar,
-    usuarioVotacao
+    usuarioVotacao,
+    listaUsuarioVotacao
 } = require("../controllers/votacaoController");
 
 const autenticar = require("../middlewares/autenticar");
@@ -103,6 +104,7 @@ router.post("/", autenticar, criarVotacao);
 router.post("/votar", autenticar, votar);
 
 router.post("/usuario-votacao", usuarioVotacao);
+router.get("/usuario-votacao/:uuid_usuario", listaUsuarioVotacao);
 
 /**
  * @swagger

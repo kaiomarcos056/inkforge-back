@@ -275,6 +275,36 @@ const usuarioVotacao = async (req, res) => {
     }
 };
 
+const listaUsuarioVotacao = async (req, res) => {
+    const { uuid_usuario } = req.params;
+
+    try {
+        const { rows } = await pool.query(
+            `
+            SELECT 
+                LI.UUID_LIVRO,
+                LI.NOME,
+                CA.UUID_CAPITULO,
+                CA.TITULO,
+                VU.UUID_VOTACAO,
+                VU.UUID_ITEM_VOTACAO,
+                VU.UUID_USUARIO
+            FROM VOTO_USUARIO VU
+            INNER JOIN VOTACAO VT ON VT.UUID_VOTACAO = VU.UUID_VOTACAO
+            INNER JOIN CAPITULO CA ON CA.UUID_CAPITULO = VT.UUID_CAPITULO
+            INNER JOIN LIVRO LI ON LI.UUID_LIVRO = CA.UUID_LIVRO
+            WHERE VU.UUID_USUARIO = $1
+            `,
+            [uuid_usuario]
+        );
+
+        res.json(rows);
+    } 
+    catch (error) {
+        res.status(500).json({ erro: "Erro ao listar votos." });
+    }
+};
+
 
 //setInterval(atualizarStatusVotacoes, 10 * 60 * 1000);
 
@@ -284,5 +314,6 @@ module.exports = {
     editarVotacao,
     excluirVotacao,
     votar,
-    usuarioVotacao
+    usuarioVotacao,
+    listaUsuarioVotacao
 };
