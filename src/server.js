@@ -16,6 +16,7 @@ const votacaoRoutes = require("./routes/votacaoRoutes");
 const generoRoutes = require("./routes/generoRoutes");
 const interesseRoutes = require("./routes/interesseRoutes");
 const historicoRoutes = require("./routes/historicoRoutes");
+const itemVotacaoRoutes = require("./routes/itemVotacaoRoutes");
 
 app.use(express.json());
 app.use(
@@ -38,6 +39,7 @@ app.use("/votacao", votacaoRoutes);
 app.use("/generos", generoRoutes);
 app.use("/interesses", interesseRoutes);
 app.use("/historico", historicoRoutes);
+app.use("/item-votacao", itemVotacaoRoutes);
 
 app.listen(PORT, () => {
     console.log(`InkForge rodando na porta: ${PORT}`);

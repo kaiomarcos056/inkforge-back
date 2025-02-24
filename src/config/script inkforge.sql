@@ -143,6 +143,15 @@ CREATE TABLE Historico (
     data_atualizado TIMESTAMP DEFAULT NOW()
 );
 
+CREATE TABLE item_votacao (
+    uuid_item_votacao UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+	uuid_usuario UUID REFERENCES Usuario(uuid_usuario) ON DELETE CASCADE,
+    uuid_votacao UUID REFERENCES Votacao(uuid_votacao) ON DELETE CASCADE,
+	descricao VARCHAR NOT NULL,
+	votos INTEGER DEFAULT 0,
+    data_criacao TIMESTAMP DEFAULT NOW()
+);
+
 -- Inserindo generos
 INSERT INTO genero(nome) VALUES 
 ('Horror'),
