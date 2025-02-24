@@ -260,7 +260,7 @@ const usuarioVotacao = async (req, res) => {
 
         const { rows } = await pool.query(
             `INSERT INTO voto_usuario(uuid_usuario, uuid_votacao, uuid_item_votacao) 
-            VALUES($1, $2, $3) RETURNING uuid_votacao`,
+            VALUES($1, $2, $3) RETURNING *`,
             [
                 uuid_usuario,
                 uuid_votacao,
@@ -270,7 +270,7 @@ const usuarioVotacao = async (req, res) => {
 
         console.log(rows);
 
-        res.status(201).json(rows);
+        res.status(201).json(result.rows[0]);
     } 
     catch (error) {
         res.status(500).json({ erro: "Erro ao criar votação." });
