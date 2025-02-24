@@ -20,7 +20,7 @@ const getFavoritosByUsuario = async (req, res) => {
     const { uuid_usuario } = req.params;
     try {
         const result = await pool.query(
-            "SELECT * FROM Favorito WHERE uuid_usuario = $1",
+            "SELECT * FROM FAVORITO F INNER JOIN LIVRO L ON L.UUID_LIVRO = F.UUID_LIVRO WHERE F.UUID_USUARIO =  $1",
             [uuid_usuario]
         );
         res.status(200).json(result.rows);
