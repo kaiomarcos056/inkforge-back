@@ -38,20 +38,29 @@ const listarItemPorVotacao = async (req, res) => {
 };
 
 const listarItemPorSugestao = async (req, res) => {
+    const { uuid_votacao } = req.params;
     try {
-        const result = await pool.query(`
+        const { rows } = await pool.query(
+            `
             SELECT 
-                I.*
+                I.*,
+                U.NOME,
+                U.FOTO
             FROM ITEM_VOTACAO I
             INNER JOIN VOTACAO V ON V.UUID_VOTACAO = I.UUID_VOTACAO
             INNER JOIN CAPITULO C ON C.UUID_CAPITULO = V.UUID_CAPITULO
             INNER JOIN LIVRO L ON L.UUID_LIVRO = C.UUID_LIVRO
+            INNER JOIN USUARIO U ON U.UUID_USUARIO = I.UUID_USUARIO
             WHERE L.UUID_USUARIO <> I.UUID_USUARIO
-            `);
-        res.status(200).json(result.rows);
+            AND I.UUID_VOTACAO = $1
+            `,
+            [uuid_votacao]
+        );
+        
+        res.status(200).json(rows);
     } 
     catch (error) {
-        res.status(500).json({ error: "Erro ao obter itens."+error.message });
+        res.status(500).json({ error: "Erro ao obter item."+error.message });
     }
 };
 

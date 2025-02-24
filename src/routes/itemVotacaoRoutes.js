@@ -10,7 +10,7 @@ const {
 router.post('/', criarItemVotacao);
 
 // GET
-router.get('/sugestao', listarItemPorSugestao);
+router.get('/sugestao/:uuid_votacao', listarItemPorSugestao);
 router.get('/:uuid_votacao', listarItemPorVotacao);
 
 
