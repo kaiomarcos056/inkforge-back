@@ -268,12 +268,10 @@ const usuarioVotacao = async (req, res) => {
             ]
         );
 
-        console.log(rows);
-
-        res.status(201).json(result.rows[0]);
+        res.status(201).json(rows[0]);
     } 
     catch (error) {
-        res.status(500).json({ erro: "Erro ao criar votação." });
+        res.status(500).json({ erro: `Erro ao criar votação: ${error}` });
     }
 };
 
