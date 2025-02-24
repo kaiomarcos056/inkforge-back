@@ -14,6 +14,6 @@ router.post('/', criarItemVotacao);
 router.get('/sugestao/:uuid_votacao', listarItemPorSugestao);
 router.get('/:uuid_votacao', listarItemPorVotacao);
 
-adicionarVoto.get('/votar/:uuid_item_votacao', listarItemPorVotacao);
+adicionarVoto.put('/votar/:uuid_item_votacao', listarItemPorVotacao);
 
 module.exports = router;
