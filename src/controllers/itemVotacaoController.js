@@ -17,7 +17,6 @@ const criarItemVotacao = async (req, res) => {
     }
 };
 
-// Listar todos os gêneros
 const listarItemPorVotacao = async (req, res) => {
     const { uuid_votacao } = req.params;
     try {
@@ -64,8 +63,27 @@ const listarItemPorSugestao = async (req, res) => {
     }
 };
 
+const adicionarVoto = async (req, res) => {
+    const { uuid_item_votacao } = req.params;
+
+    try {
+        await pool.query(
+            `
+            UPDATE ITEM_VOTACAO SET VOTOS = VOTOS + 1 WHERE UUID_ITEM_VOTACAO = $1
+            `,
+            [uuid_item_votacao]
+        );
+
+        res.json({ mensagem: "voto cadastrado com sucesso." });
+    } 
+    catch (error) {
+        res.status(500).json({ erro: "Erro ao votar." });
+    }
+};
+
 module.exports = {
     criarItemVotacao,
     listarItemPorVotacao,
     listarItemPorSugestao,
+    adicionarVoto
 };
