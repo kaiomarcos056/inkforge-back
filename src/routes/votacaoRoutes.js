@@ -6,6 +6,7 @@ const {
     editarVotacao,
     excluirVotacao,
     votar,
+    usuarioVotacao
 } = require("../controllers/votacaoController");
 
 const autenticar = require("../middlewares/autenticar");
@@ -100,6 +101,8 @@ router.post("/", autenticar, criarVotacao);
  *         description: Erro ao registrar o voto
  */
 router.post("/votar", autenticar, votar);
+
+router.post("/usuario-votacao", usuarioVotacao);
 
 /**
  * @swagger
@@ -217,5 +220,7 @@ router.delete(
     autorizarDono("Votacao", "criador", "uuid_votacao"),
     excluirVotacao
 );
+
+
 
 module.exports = router;

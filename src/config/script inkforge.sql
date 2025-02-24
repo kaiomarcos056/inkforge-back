@@ -129,9 +129,8 @@ CREATE TABLE Voto_Usuario (
     uuid_voto UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     uuid_usuario UUID REFERENCES Usuario(uuid_usuario) ON DELETE CASCADE,
     uuid_votacao UUID REFERENCES Votacao(uuid_votacao) ON DELETE CASCADE,
-    opcao_escolhida VARCHAR NOT NULL,
-    data_criacao TIMESTAMP DEFAULT NOW(),
-    UNIQUE (uuid_usuario, uuid_votacao)
+	uuid_item_votacao UUID REFERENCES Item_Votacao(uuid_item_votacao) ON DELETE CASCADE,
+    data_criacao TIMESTAMP DEFAULT NOW()
 );
 
 -- Criar a tabela de historico

@@ -253,6 +253,31 @@ const atualizarStatusVotacoes = async () => {
     }
 };
 
+const usuarioVotacao = async (req, res) => {
+    const { uuid_usuario, uuid_votacao, uuid_item_votacao } = req.body;
+    
+    try {
+
+        const { rows } = await pool.query(
+            `INSERT INTO voto_usuario(uuid_usuario, uuid_votacao, uuid_item_votacao) 
+            VALUES($1, $2, $3) RETURNING uuid_votacao`,
+            [
+                uuid_usuario,
+                uuid_votacao,
+                uuid_item_votacao,
+            ]
+        );
+
+        console.log(rows);
+
+        res.status(201).json(rows);
+    } 
+    catch (error) {
+        res.status(500).json({ erro: "Erro ao criar votação." });
+    }
+};
+
+
 //setInterval(atualizarStatusVotacoes, 10 * 60 * 1000);
 
 module.exports = {
@@ -261,4 +286,5 @@ module.exports = {
     editarVotacao,
     excluirVotacao,
     votar,
+    usuarioVotacao
 };
