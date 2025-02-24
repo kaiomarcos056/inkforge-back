@@ -305,6 +305,29 @@ const listaUsuarioVotacao = async (req, res) => {
     }
 };
 
+const listaItemUsuarioVotacao = async (req, res) => {
+    const { uuid_usuario, uuid_votacao, uuid_item_votacao } = req.query;
+
+    try {
+        //AND UUID_ITEM_VOTACAO = $3
+        const { rows } = await pool.query(
+            `
+            SELECT 
+                * 
+            FROM VOTO_USUARIO 
+            WHERE UUID_USUARIO = $1 
+            AND UUID_VOTACAO = $2 
+            `,
+            [uuid_usuario, uuid_votacao]
+        );
+
+        res.json(rows);
+    } 
+    catch (error) {
+        res.status(500).json({ erro: "Erro ao listar votos." });
+    }
+};
+
 
 //setInterval(atualizarStatusVotacoes, 10 * 60 * 1000);
 
@@ -315,5 +338,6 @@ module.exports = {
     excluirVotacao,
     votar,
     usuarioVotacao,
-    listaUsuarioVotacao
+    listaUsuarioVotacao,
+    listaItemUsuarioVotacao
 };
