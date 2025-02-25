@@ -126,12 +126,14 @@ const login = async (req, res) => {
                 tipo: usuario.tipo,
             },
             segredo,
-            { expiresIn: tempoExpiracao }
+            { expiresIn: '24h' }
         );
+
+        const decoded = jwt.decode(token);
 
         res.json({
             token,
-            expiresIn: tempoExpiracaoMs,
+            exp: decoded.exp,
             usuario: {
                 uuid_usuario: usuario.uuid_usuario,
                 nome: usuario.nome,
