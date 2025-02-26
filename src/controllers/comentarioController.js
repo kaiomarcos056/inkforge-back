@@ -15,12 +15,10 @@ const addComentario = async (req, res) => {
 };
 
 const getComentariosByCapitulo = async (req, res) => {
-    const { uuid_usuario, uuid_livro } = req.query;
+    const { uuid_livro } = req.query;
 
     try {
         const result = await pool.query(
-            // "SELECT * FROM Comentario WHERE uuid_livro = $1 AND uuid_usuario = $2 ORDER BY DATA_CRIACAO DESC",
-            // "SELECT * FROM Comentario WHERE uuid_livro = $1 ORDER BY DATA_CRIACAO DESC",
             `
             SELECT 
                 C.*,
@@ -31,11 +29,11 @@ const getComentariosByCapitulo = async (req, res) => {
             WHERE C.UUID_LIVRO = $1
             ORDER BY C.DATA_CRIACAO DESC
             `
-            // [uuid_livro, uuid_usuario]
             [uuid_livro]
         );
         res.status(200).json(result.rows);
-    } catch (err) {
+    } 
+    catch (err) {
         console.error(err);
         res.status(500).json({ error: "Erro ao buscar comentários." });
     }
