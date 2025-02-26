@@ -217,7 +217,7 @@ const obterLivroPorGenero = async (req, res) => {
             return res.status(404).json({ erro: "Livro não encontrado." });
         }
 
-        res.json(result.rows[0]);
+        res.json(result.rows);
     } 
     catch (error) {
         res.status(500).json({ erro: "Erro ao obter livro." });
