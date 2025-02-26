@@ -19,8 +19,10 @@ const getComentariosByCapitulo = async (req, res) => {
 
     try {
         const result = await pool.query(
-            "SELECT * FROM Comentario WHERE uuid_livro = $1 AND uuid_usuario = $2",
-            [uuid_livro, uuid_usuario]
+            // "SELECT * FROM Comentario WHERE uuid_livro = $1 AND uuid_usuario = $2 ORDER BY DATA_CRIACAO DESC",
+            "SELECT * FROM Comentario WHERE uuid_livro = $1 ORDER BY DATA_CRIACAO DESC",
+            // [uuid_livro, uuid_usuario]
+            [uuid_livro]
         );
         res.status(200).json(result.rows);
     } catch (err) {
