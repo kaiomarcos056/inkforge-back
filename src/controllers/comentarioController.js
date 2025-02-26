@@ -28,7 +28,7 @@ const getComentariosByCapitulo = async (req, res) => {
                 U.FOTO
             FROM COMENTARIO C
             INNER JOIN USUARIO U ON U.UUID_USUARIO = C.UUID_USUARIO
-            WHERE uuid_livro = $1
+            WHERE C.UUID_LIVRO = $1
             ORDER BY C.DATA_CRIACAO DESC
             `
             // [uuid_livro, uuid_usuario]
