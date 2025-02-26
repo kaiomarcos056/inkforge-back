@@ -103,7 +103,7 @@ ADD COLUMN finalizado BOOLEAN DEFAULT FALSE;
 -- Criar a tabela Comentario
 CREATE TABLE Comentario (
     uuid_comentario UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    uuid_capitulo UUID REFERENCES Capitulo(uuid_capitulo) ON DELETE CASCADE,
+    uuid_livro UUID REFERENCES Livro(uuid_livro) ON DELETE CASCADE,
     uuid_usuario UUID REFERENCES Usuario(uuid_usuario) ON DELETE CASCADE,
     comentario VARCHAR NOT NULL,
     data_criacao TIMESTAMP DEFAULT NOW(),

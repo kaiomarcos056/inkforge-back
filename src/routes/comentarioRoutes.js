@@ -4,6 +4,6 @@ const comentarioController = require("../controllers/comentarioController");
 
 router.post("/", comentarioController.addComentario);
 
-router.get("/:uuid_capitulo", comentarioController.getComentariosByCapitulo);
+router.get("/", comentarioController.getComentariosByCapitulo);
 
 module.exports = router;
