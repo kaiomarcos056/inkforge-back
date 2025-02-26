@@ -191,6 +191,39 @@ const obterLivroPorUUID = async (req, res) => {
     }
 };
 
+const obterLivroPorGenero = async (req, res) => {
+    const { uuid_genero } = req.params;
+
+    try {
+        const result = await pool.query(
+            `
+            SELECT 
+                l.*,
+                COALESCE(
+                    (SELECT 
+                        JSON_AGG(g.*) 
+                    FROM genero g 
+                    JOIN livro_genero lg ON g.uuid_genero = lg.uuid_genero 
+                    WHERE lg.uuid_livro = l.uuid_livro)
+                , '[]') AS generos
+            FROM livro l
+            INNER JOIN livro_genero lg ON l.uuid_livro = lg.uuid_livro
+            WHERE lg.uuid_genero = $1
+        `,
+            [uuid_genero]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(404).json({ erro: "Livro não encontrado." });
+        }
+
+        res.json(result.rows[0]);
+    } 
+    catch (error) {
+        res.status(500).json({ erro: "Erro ao obter livro." });
+    }
+};
+
 const atualizarLivro = async (req, res) => {
     const { uuid_livro } = req.params;
     const { nome, capa, generos } = req.body;
@@ -269,4 +302,5 @@ module.exports = {
     obterLivroPorUUID,
     atualizarLivro,
     excluirLivro,
+    obterLivroPorGenero
 };

@@ -9,6 +9,7 @@ const {
     listarLivros,
     obterLivroPorUUID,
     buscarLivros,
+    obterLivroPorGenero
 } = require("../controllers/livroController");
 
 /**
@@ -96,6 +97,9 @@ router.get("/", listarLivros);
  *         description: Erro ao buscar livros
  */
 router.get("/busca", buscarLivros);
+
+router.get("/genero/:uuid_genero", obterLivroPorGenero);
+
 
 /**
  * @swagger
