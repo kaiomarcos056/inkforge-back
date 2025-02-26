@@ -199,6 +199,8 @@ const obterLivroPorGenero = async (req, res) => {
             `
             SELECT 
                 l.*,
+                u.nome,
+	            u.foto,
                 COALESCE(
                     (SELECT 
                         JSON_AGG(g.*) 
@@ -208,6 +210,7 @@ const obterLivroPorGenero = async (req, res) => {
                 , '[]') AS generos
             FROM livro l
             INNER JOIN livro_genero lg ON l.uuid_livro = lg.uuid_livro
+            INNER JOIN usuario u ON u.uuid_usuario = l.uuid_usuario
             WHERE lg.uuid_genero = $1
         `,
             [uuid_genero]
