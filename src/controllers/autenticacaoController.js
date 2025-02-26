@@ -91,7 +91,7 @@ const login = async (req, res) => {
 
     try {
         let { rows } = await pool.query(
-            "SELECT * FROM Usuario WHERE email = $1",
+            "SELECT * FROM Usuario WHERE UPPER(email) = UPPER($1)",
             [email]
         );
 
