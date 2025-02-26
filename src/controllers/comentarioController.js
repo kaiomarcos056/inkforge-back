@@ -28,7 +28,7 @@ const getComentariosByCapitulo = async (req, res) => {
             INNER JOIN USUARIO U ON U.UUID_USUARIO = C.UUID_USUARIO
             WHERE C.UUID_LIVRO = $1
             ORDER BY C.DATA_CRIACAO DESC
-            `
+            `,
             [uuid_livro]
         );
         res.status(200).json(result.rows);
