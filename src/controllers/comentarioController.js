@@ -35,7 +35,7 @@ const getComentariosByCapitulo = async (req, res) => {
     } 
     catch (err) {
         console.error(err);
-        res.status(500).json({ error: "Erro ao buscar comentários." });
+        res.status(500).json({ error: `Erro ao buscar comentários: ${err}` });
     }
 };
 
