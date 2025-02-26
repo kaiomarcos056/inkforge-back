@@ -199,7 +199,7 @@ const obterLivroPorGenero = async (req, res) => {
             `
             SELECT 
                 l.*,
-                u.nome,
+                u.nome as autor,
 	            u.foto,
                 COALESCE(
                     (SELECT 
